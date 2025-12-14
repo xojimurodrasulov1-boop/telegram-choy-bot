@@ -1,0 +1,11 @@
+from aiogram import types
+from bot import dp
+from buttons.products import products_buttons
+from buttons.balance import balance_buttons
+
+@dp.callback_query_handler(text="products")
+async def show_products(call: types.CallbackQuery):
+    await call.message.answer(
+        "Mavjud mahsulotlar:\n1️⃣ Mahsulot A\n2️⃣ Mahsulot B\n3️⃣ Mahsulot C"
+    )
+
