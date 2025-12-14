@@ -13,7 +13,7 @@ def get_main_keyboard() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="⭐️ Отзывы", callback_data="reviews")
             ],
             [
-                InlineKeyboardButton(text="🧾 Поддержка", callback_data="support"),
+                InlineKeyboardButton(text="🧾 Поддержка", url="https://t.me/StoreTashkent_support"),
                 InlineKeyboardButton(text="👤 Профиль", callback_data="profile")
             ],
             [

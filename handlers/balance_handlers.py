@@ -417,12 +417,9 @@ async def enter_promokod(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == "pay_card")
 async def pay_card(callback: CallbackQuery):
-    await callback.message.edit_text(
-        "💳 <b>ОПЛАТА КАРТОЙ</b>\n\n"
-        "━━━━━━━━━━━━━━━━━━━━\n"
-        "Выберите сумму пополнения:",
-        reply_markup=get_card_amounts_keyboard(),
-        parse_mode="HTML"
+    await callback.answer(
+        "⚠️ В данный момент платежная система не работает. Попробуйте позже.",
+        show_alert=True
     )
 
 

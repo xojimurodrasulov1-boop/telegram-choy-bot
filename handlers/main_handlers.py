@@ -1,5 +1,5 @@
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery, FSInputFile, BufferedInputFile
+from aiogram.types import Message, CallbackQuery, FSInputFile, BufferedInputFile, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 import os
@@ -10,24 +10,48 @@ from data.models import db
 from data.products_data import SHOP_INFO
 from states.deposit import CaptchaStates
 from utils.captcha import generate_captcha
+from utils.reviews import get_reviews_text, TOTAL_PAGES
+
+
+def get_reviews_keyboard(page: int = 1) -> InlineKeyboardMarkup:
+    buttons = []
+    
+    nav_buttons = []
+    if page > 1:
+        nav_buttons.append(InlineKeyboardButton(text="⬅️ Назад", callback_data=f"reviews_page:{page-1}"))
+    if page < TOTAL_PAGES:
+        nav_buttons.append(InlineKeyboardButton(text="Вперед ➡️", callback_data=f"reviews_page:{page+1}"))
+    
+    if nav_buttons:
+        buttons.append(nav_buttons)
+    
+    buttons.append([InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_main")])
+    
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 router = Router()
 
 WELCOME_IMAGE = "images/store.jpg"
 
-WELCOME_TEXT = """
-🍵 <b>CHOY MAGAZINE</b> 🍵
+WELCOME_TEXT = """Добро пожаловать в наш уютный магазин!
+В нашем боте вы можете что-то купить!
 
-━━━━━━━━━━━━━━━━━━━━
-Добро пожаловать в лучший магазин чая!
+Кол-во сделок: <b>70949 шт.</b>
 
-🌿 Премиум качество
-🚚 Быстрая доставка
-💯 Гарантия свежести
-━━━━━━━━━━━━━━━━━━━━
+<b>Твой баланс:</b> {balance} USD ({balance_ltc} LTC)
+<b>Покупок:</b> {purchases}
+<b>Персональная скидка:</b> {discount} %
 
-Выберите действие:
-"""
+Приглашены: {referrals}
+Бонусов получено: {bonus} USD
+
+
+При совершении покупки клиентом, которого вы пригласили - бонус будет автоматически зачислен на Ваш баланс. Вы получите уведомление о зачислении.
+
+🛒 Купить Товары   💳 Пополнить Баланс
+⚠️ Правила   ⭐️ Отзывы
+🧾 Поддержка   👤 Профиль
+💱 BRATSKIY OBMEN 💱"""
 
 
 @router.message(CommandStart())
@@ -93,12 +117,29 @@ async def check_captcha(message: Message, state: FSMContext):
 
 
 async def show_main_menu(message: Message):
+    user = db.get_user(message.from_user.id)
+    balance = user.balance if user else 0
+    purchases = user.total_orders if user else 0
+    discount = 0
+    referrals = 0
+    bonus = 0
+    balance_ltc = round(balance * 0.013, 2)
+    
+    welcome_text = WELCOME_TEXT.format(
+        balance=balance,
+        balance_ltc=balance_ltc,
+        purchases=purchases,
+        discount=discount,
+        referrals=referrals,
+        bonus=bonus
+    )
+    
     if os.path.exists(WELCOME_IMAGE):
         try:
             photo = FSInputFile(WELCOME_IMAGE)
             await message.answer_photo(
                 photo=photo,
-                caption=WELCOME_TEXT,
+                caption=welcome_text,
                 reply_markup=get_main_keyboard(),
                 parse_mode="HTML"
             )
@@ -107,7 +148,7 @@ async def show_main_menu(message: Message):
             pass
     
     await message.answer(
-        WELCOME_TEXT,
+        welcome_text,
         reply_markup=get_main_keyboard(),
         parse_mode="HTML"
     )
@@ -168,27 +209,71 @@ async def show_profile(callback: CallbackQuery):
 ━━━━━━━━━━━━━━━━━━━━
 """
     
-    await callback.message.edit_text(
-        profile_text,
-        reply_markup=get_back_to_main_keyboard(),
-        parse_mode="HTML"
-    )
+    try:
+        await callback.message.edit_text(
+            profile_text,
+            reply_markup=get_back_to_main_keyboard(),
+            parse_mode="HTML"
+        )
+    except Exception:
+        await callback.message.delete()
+        await callback.message.answer(
+            profile_text,
+            reply_markup=get_back_to_main_keyboard(),
+            parse_mode="HTML"
+        )
 
 
 @router.callback_query(F.data == "rules")
 async def show_rules(callback: CallbackQuery):
-    await callback.message.edit_text(
-        SHOP_INFO["rules"],
-        reply_markup=get_back_to_main_keyboard(),
-        parse_mode="HTML"
-    )
+    rules_text = """Правила рассмотрения и заполнения заявки для уточнений при ненаходе:
+
+https://telegra.ph/Pravila-Magazina-08-10"""
+    try:
+        await callback.message.edit_caption(
+            caption=rules_text,
+            reply_markup=get_main_keyboard(),
+            parse_mode="HTML"
+        )
+    except Exception:
+        try:
+            await callback.message.edit_text(
+                rules_text,
+                reply_markup=get_main_keyboard(),
+                parse_mode="HTML"
+            )
+        except Exception:
+            await callback.message.delete()
+            await callback.message.answer(
+                rules_text,
+                reply_markup=get_main_keyboard(),
+                parse_mode="HTML"
+            )
 
 
 @router.callback_query(F.data == "reviews")
 async def show_reviews(callback: CallbackQuery):
+    try:
+        await callback.message.edit_text(
+            get_reviews_text(1),
+            reply_markup=get_reviews_keyboard(1),
+            parse_mode="HTML"
+        )
+    except Exception:
+        await callback.message.delete()
+        await callback.message.answer(
+            get_reviews_text(1),
+            reply_markup=get_reviews_keyboard(1),
+            parse_mode="HTML"
+        )
+
+
+@router.callback_query(F.data.startswith("reviews_page:"))
+async def show_reviews_page(callback: CallbackQuery):
+    page = int(callback.data.split(":")[1])
     await callback.message.edit_text(
-        SHOP_INFO["reviews"],
-        reply_markup=get_back_to_main_keyboard(),
+        get_reviews_text(page),
+        reply_markup=get_reviews_keyboard(page),
         parse_mode="HTML"
     )
 

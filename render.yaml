@@ -3,9 +3,11 @@ services:
     name: telegram-bot
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: python bot.py
+    startCommand: python run_both.py
     envVars:
       - key: BOT_TOKEN
+        sync: false
+      - key: ADMIN_BOT_TOKEN
         sync: false
       - key: NOWPAYMENTS_API_KEY
         sync: false

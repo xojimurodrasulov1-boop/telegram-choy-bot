@@ -25,11 +25,19 @@ async def show_support(callback: CallbackQuery):
 Выберите действие:
 """
     
-    await callback.message.edit_text(
-        support_text,
-        reply_markup=get_support_keyboard(),
-        parse_mode="HTML"
-    )
+    try:
+        await callback.message.edit_text(
+            support_text,
+            reply_markup=get_support_keyboard(),
+            parse_mode="HTML"
+        )
+    except Exception:
+        await callback.message.delete()
+        await callback.message.answer(
+            support_text,
+            reply_markup=get_support_keyboard(),
+            parse_mode="HTML"
+        )
 
 
 @router.callback_query(F.data == "write_support")
