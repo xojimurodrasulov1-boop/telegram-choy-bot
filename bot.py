@@ -1,18 +1,43 @@
 import asyncio
 import logging
 import sys
+import random
 
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, F
+from aiogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.client.default import DefaultBotProperties
+from aiogram.fsm.context import FSMContext
 
-from config import BOT_TOKEN
+from config import BOT_TOKEN, ADMIN_IDS, LTC_ADDRESS, BTC_ADDRESS
+from data.models import db
 from handlers import (
     main_router,
     balance_router,
-    product_router,
     support_router
 )
+
+# MAHSULOTLAR
+PRODUCTS = {
+    "coco_120": {
+        "name": "🍫Euro Hash | 0.5g",
+        "price_usd": 19,
+        "old_price_usd": 21,
+        "description": "💯Лучший в своем деле💯\n\nEuro Hash сможет это сделать с одной плюшки😏"
+    },
+    "coco_200": {
+        "name": "🍫Euro Hash | 1g",
+        "price_usd": 42,
+        "old_price_usd": None,
+        "description": "💯Лучший в своем деле💯\n\nEuro Hash сможет это сделать с одной плюшки😏"
+    }
+}
+
+DISTRICTS = {
+    "chilonzor": "Чилонзор",
+    "sergeli": "Сергели",
+    "mirzoulugbek": "Мирзо Улугбек"
+}
 
 logging.basicConfig(
     level=logging.INFO,
@@ -31,7 +56,6 @@ async def main():
     
     dp.include_router(main_router)
     dp.include_router(balance_router)
-    dp.include_router(product_router)
     dp.include_router(support_router)
     
     logger.info("Bot ishga tushdi!")

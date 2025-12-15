@@ -10,6 +10,7 @@ class DepositStates(StatesGroup):
     waiting_for_screenshot = State()
     waiting_for_crypto_amount = State()
     waiting_for_tx_hash = State()
+    waiting_for_deposit_amount = State()
 
 
 class OrderStates(StatesGroup):

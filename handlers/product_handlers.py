@@ -8,7 +8,32 @@ from aiogram.fsm.context import FSMContext
 from config import ADMIN_IDS, ADMIN_BOT_TOKEN, LTC_ADDRESS, BTC_ADDRESS
 from keyboards.main import get_main_keyboard
 from data.models import db
-from data.products_data import PRODUCTS, DISTRICTS, LTC_RATE, BTC_RATE
+# PRODUCTS - FAQAT 2 TA EURO HASH
+PRODUCTS = {
+    "coco_120": {
+        "name": "🍫Euro Hash | 0.5g",
+        "price_usd": 19,
+        "old_price_usd": 21,
+        "photo": "images/euro_hash.jpg",
+        "description": "💯Лучший в своем деле💯\n\nЛюбишь когда тебя убивает?☠️\nEuro Hash сможет это сделать с одной плюшки😏\n\n✨ Всего один вдох и ты растечешься по креслу"
+    },
+    "coco_200": {
+        "name": "🍫Euro Hash | 1g",
+        "price_usd": 42,
+        "old_price_usd": None,
+        "photo": "images/euro_hash.jpg",
+        "description": "💯Лучший в своем деле💯\n\nЛюбишь когда тебя убивает?☠️\nEuro Hash сможет это сделать с одной плюшки😏\n\n✨ Всего один вдох и ты растечешься по креслу"
+    }
+}
+
+DISTRICTS = {
+    "chilonzor": "Чилонзор",
+    "sergeli": "Сергели",
+    "mirzoulugbek": "Мирзо Улугбек"
+}
+
+LTC_RATE = 0.013
+BTC_RATE = 0.0000098
 from states.deposit import DepositStates
 
 router = Router()
@@ -17,9 +42,14 @@ router = Router()
 def get_products_keyboard() -> InlineKeyboardMarkup:
     buttons = []
     for key, product in PRODUCTS.items():
+        old_price = product.get('old_price_usd')
+        if old_price:
+            price_text = f"{product['name']} | {old_price}$ ➜ {product['price_usd']}$"
+        else:
+            price_text = f"{product['name']} | {product['price_usd']}$"
         buttons.append([
             InlineKeyboardButton(
-                text=f"{product['name']} | {product['price_usd']}$",
+                text=price_text,
                 callback_data=f"select:{key}"
             )
         ])
@@ -50,6 +80,11 @@ def get_districts_keyboard(product_key: str) -> InlineKeyboardMarkup:
 
 @router.callback_query(F.data == "products")
 async def show_products(callback: CallbackQuery):
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"PRODUCTS handler called! PRODUCTS count: {len(PRODUCTS)}")
+    logger.info(f"PRODUCTS keys: {list(PRODUCTS.keys())}")
+    
     products_text = """
 🛒 <b>КУПИТЬ ТОВАРЫ</b>
 
