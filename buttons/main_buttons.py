@@ -1,26 +1,33 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
+
 def main_keyboard():
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
     buttons = [
-        KeyboardButton("🛍️ Купить Товары"),
+        KeyboardButton("🏪 Витрина"),
         KeyboardButton("💰 Баланс"),
         KeyboardButton("⚠️ Правила"),
-        KeyboardButton("📞 Поддержка"),
-        KeyboardButton("💼 Работа")
+        KeyboardButton("📞 Поддержка")
     ]
     keyboard.add(*buttons)
     return keyboard
+
 
 def inline_main_keyboard():
-    keyboard = InlineKeyboardMarkup(row_width=2)
-    buttons = [
-        InlineKeyboardButton("🛍️ Купить Товары", callback_data="products"),
-        InlineKeyboardButton("💰 Баланс", callback_data="balance"),
-        InlineKeyboardButton("⚠️ Правила", callback_data="info"),
-        InlineKeyboardButton("📞 Поддержка", callback_data="support"),
-        InlineKeyboardButton("💼 Работа", callback_data="work")
-    ]
-    keyboard.add(*buttons)
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="🏪 Витрина", callback_data="vitrina"),
+                InlineKeyboardButton(text="💳 Пополнить Баланс", callback_data="balance")
+            ],
+            [
+                InlineKeyboardButton(text="⚠️ Правила", callback_data="rules"),
+                InlineKeyboardButton(text="⭐️ Отзывы", callback_data="reviews")
+            ],
+            [
+                InlineKeyboardButton(text="🧾 Поддержка", url="https://t.me/StoreTashkent_support"),
+                InlineKeyboardButton(text="👤 Профиль", callback_data="profile")
+            ]
+        ]
+    )
     return keyboard
-

@@ -1,10 +1,10 @@
-yoimport asyncio
+import asyncio
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import Message
 from aiogram.filters import CommandStart
 from aiogram.client.default import DefaultBotProperties
 
-ADMIN_BOT_TOKEN = "8249799462:AAGfwF7gdEFFz_aCfpbofb-O3MXhEW8wBEM"
+from config import ADMIN_BOT_TOKEN
 
 bot = Bot(token=ADMIN_BOT_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
 dp = Dispatcher()

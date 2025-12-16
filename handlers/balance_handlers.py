@@ -19,6 +19,9 @@ BTC_RATE = 0.0000098
 
 @router.callback_query(F.data == "balance")
 async def show_balance(callback: CallbackQuery, state: FSMContext):
+    # State'ni tozalash va yangi holatga o'tkazish
+    await state.clear()
+    
     back_keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_main")]
@@ -43,12 +46,15 @@ async def show_balance(callback: CallbackQuery, state: FSMContext):
 
 @router.message(DepositStates.waiting_for_deposit_amount)
 async def receive_deposit_amount(message: Message, state: FSMContext):
+    if not message.text:
+        return
+    
     try:
         amount = int(message.text.replace("$", "").replace(",", "").strip())
         if amount < 1 or amount > 5000:
             await message.answer("❌ Сумма должна быть от 1 до 5000 USD!\nВведите другую сумму:")
             return
-    except ValueError:
+    except (ValueError, AttributeError):
         await message.answer("❌ Неверный формат!\nВведите число (например: 50):")
         return
     
@@ -57,12 +63,11 @@ async def receive_deposit_amount(message: Message, state: FSMContext):
     crypto_keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="💎 LTC", callback_data="select_ltc"),
-                InlineKeyboardButton(text="₿ BTC", callback_data="select_btc")
+                InlineKeyboardButton(text="LTC", callback_data="select_ltc"),
+                InlineKeyboardButton(text="BTC", callback_data="select_btc")
             ],
             [
-                InlineKeyboardButton(text="💳 UzCard", callback_data="select_uzcard"),
-                InlineKeyboardButton(text="💳 Humo", callback_data="select_humo")
+                InlineKeyboardButton(text="💳 UzCard/Humo", callback_data="select_card")
             ],
             [
                 InlineKeyboardButton(text="🎁 Промокод", callback_data="promokod")
@@ -92,18 +97,10 @@ async def select_btc(callback: CallbackQuery, state: FSMContext):
     await show_crypto_confirmation(callback, state)
 
 
-@router.callback_query(F.data == "select_uzcard")
-async def select_uzcard(callback: CallbackQuery):
+@router.callback_query(F.data == "select_card")
+async def select_card(callback: CallbackQuery):
     await callback.answer(
-        "⚠️ UzCard временно недоступен.\nИспользуйте обменник: @BratskiyObmen",
-        show_alert=True
-    )
-
-
-@router.callback_query(F.data == "select_humo")
-async def select_humo(callback: CallbackQuery):
-    await callback.answer(
-        "⚠️ Humo временно недоступен.\nИспользуйте обменник: @BratskiyObmen",
+        "⚠️ UzCard/Humo временно недоступен.",
         show_alert=True
     )
 
@@ -120,8 +117,7 @@ async def enter_promokod(callback: CallbackQuery, state: FSMContext):
         reply_markup=back_keyboard,
         parse_mode="HTML"
     )
-    await state.set_state(DepositStates.waiting_for_amount)
-    await state.update_data(is_promokod=True)
+    await state.set_state(DepositStates.waiting_for_promocode)
 
 
 async def show_crypto_confirmation(callback: CallbackQuery, state: FSMContext):
@@ -154,9 +150,7 @@ async def show_crypto_confirmation(callback: CallbackQuery, state: FSMContext):
         ]
     )
     
-    text = f"""https://t.me/bratskyobmen
-
-<b>Заявка на пополнение #{application_id}</b>
+    text = f"""<b>Заявка на пополнение #{application_id}</b>
 Способ пополнения: {crypto_name}
 На баланс: <b>{amount_usd} $</b>
 
@@ -165,11 +159,7 @@ async def show_crypto_confirmation(callback: CallbackQuery, state: FSMContext):
 ☝️ ☝️ ☝️
 
 ⚠️⚠️⚠️ Необходимо перевести точную сумму для оплаты! ⚠️⚠️⚠️
-После подтверждения заявки вы получите реквизиты для оплаты! У вас будет 30 минут для того, что бы оплатить. 
-Вы можете отправлять сообщения оператору технической поддержки. 
-stanislaw - Наш основной аккаунт оператора @BratskiyObmen был заблокирован Telegram. Наш новый аккаунт оператора: @BratskiyObmen
-
-<i>Администрация магазина за действия обменников ответственности не несет!</i>"""
+После подтверждения заявки вы получите реквизиты для оплаты! У вас будет 30 минут для того, что бы оплатить."""
     
     await callback.message.edit_text(text, reply_markup=confirm_keyboard, parse_mode="HTML")
 
@@ -189,17 +179,12 @@ async def confirm_crypto_show_address(callback: CallbackQuery, state: FSMContext
                 InlineKeyboardButton(text="✅ Я оплатил", callback_data=f"paid_crypto:{application_id}")
             ],
             [
-                InlineKeyboardButton(text="✍️ Написать сообщение", url="https://t.me/BratskiyObmen")
-            ],
-            [
                 InlineKeyboardButton(text="❌ Отменить", callback_data="back_to_main")
             ]
         ]
     )
     
-    text = f"""https://t.me/bratskyobmen
-
-<b>Заявка на пополнение #{application_id}</b>
+    text = f"""<b>Заявка на пополнение #{application_id}</b>
 Способ пополнения: {crypto_name}
 На баланс: <b>{amount_usd} $</b>
 
@@ -209,15 +194,9 @@ async def confirm_crypto_show_address(callback: CallbackQuery, state: FSMContext
 Реквизиты для оплаты: <code>{pay_address}</code>
 ☝️ ☝️ ☝️
 
-
-
 ⚠️⚠️⚠️ ПЕРЕВОДИТЬ НАДО ТОЧНУЮ СУММУ! ⚠️⚠️⚠️
 
-Время для оплаты - 30 минут.
-Если в течении 5 минут после оплаты ваш платеж не зачислился - отправьте ФОТО квитанции об оплате через кнопку "НАПИСАТЬ СООБЩЕНИЕ" ниже 👇.
-stanislaw - Наш основной аккаунт оператора @BratskiyObmen был заблокирован Telegram. Наш новый аккаунт оператора: @BratskiyObmen
-
-<i>Администрация магазина за действия обменников ответственности не несет!</i>"""
+Время для оплаты - 30 минут."""
     
     await callback.message.edit_text(text, reply_markup=paid_keyboard, parse_mode="HTML")
 
@@ -238,57 +217,84 @@ async def paid_crypto(callback: CallbackQuery, state: FSMContext):
         parse_mode="HTML"
     )
     
+    # Admin bot'ga xabar yuborish
+    import aiohttp
+    from config import ADMIN_BOT_TOKEN
+    
+    admin_keyboard = {
+        "inline_keyboard": [[
+            {
+                "text": "✅ Подтвердить",
+                "callback_data": f"confirm_deposit:{callback.from_user.id}:{amount_usd}:{application_id}"
+            },
+            {
+                "text": "❌ Отклонить",
+                "callback_data": f"reject_deposit:{callback.from_user.id}:{application_id}"
+            }
+        ]]
+    }
+    
+    admin_text = (
+        f"💰 <b>ПОЛЬЗОВАТЕЛЬ НАЖАЛ 'Я ОПЛАТИЛ'</b>\n\n"
+        f"🆔 Заявка: #{application_id}\n"
+        f"👤 Пользователь: {callback.from_user.full_name}\n"
+        f"🆔 ID: <code>{callback.from_user.id}</code>\n"
+        f"📱 Username: @{callback.from_user.username or 'Нет'}\n\n"
+        f"💵 Сумма: {amount_usd} $\n"
+        f"💎 Крипто: {crypto_amount} {crypto_name}"
+    )
+    
     for admin_id in ADMIN_IDS:
         try:
-            admin_keyboard = InlineKeyboardMarkup(
-                inline_keyboard=[
-                    [
-                        InlineKeyboardButton(text="✅ Подтвердить", callback_data=f"confirm_deposit:{callback.from_user.id}:{amount_usd}:{application_id}"),
-                        InlineKeyboardButton(text="❌ Отклонить", callback_data=f"reject_deposit:{callback.from_user.id}:{application_id}")
-                    ]
-                ]
-            )
-            await callback.bot.send_message(
-                admin_id,
-                f"💰 <b>ПОЛЬЗОВАТЕЛЬ НАЖАЛ 'Я ОПЛАТИЛ'</b>\n\n"
-                f"🆔 Заявка: #{application_id}\n"
-                f"👤 Пользователь: {callback.from_user.full_name}\n"
-                f"🆔 ID: <code>{callback.from_user.id}</code>\n"
-                f"📱 Username: @{callback.from_user.username or 'Нет'}\n\n"
-                f"💵 Сумма: {amount_usd} $\n"
-                f"💎 Крипто: {crypto_amount} {crypto_name}",
-                reply_markup=admin_keyboard,
-                parse_mode="HTML"
-            )
+            async with aiohttp.ClientSession() as session:
+                url = f"https://api.telegram.org/bot{ADMIN_BOT_TOKEN}/sendMessage"
+                payload = {
+                    "chat_id": admin_id,
+                    "text": admin_text,
+                    "reply_markup": admin_keyboard,
+                    "parse_mode": "HTML"
+                }
+                await session.post(url, json=payload)
         except Exception as e:
             print(f"Error sending admin message: {e}")
     
     await state.clear()
 
 
-@router.message(DepositStates.waiting_for_amount)
+PROMOCODES = {
+    "CHOY2024": 50,
+    "BALGAM": 1000
+}
+
+@router.message(DepositStates.waiting_for_promocode)
 async def receive_promokod(message: Message, state: FSMContext):
-    data = await state.get_data()
+    promokod = message.text.strip().upper()
     
-    if data.get("is_promokod"):
-        promokod = message.text.strip().upper()
-        
-        if promokod == "CHOY2024":
-            amount = 50
-            db.update_balance(message.from_user.id, amount)
-            user = db.get_user(message.from_user.id)
-            
+    if promokod in PROMOCODES:
+        if db.has_used_promocode(message.from_user.id, promokod):
             await message.answer(
-                f"🎉 <b>ПРОМОКОД АКТИВИРОВАН!</b>\n\n"
-                f"➕ Начислено: {amount} $\n"
-                f"💰 Ваш баланс: {user.balance} $",
-                reply_markup=get_main_keyboard(),
-                parse_mode="HTML"
-            )
-        else:
-            await message.answer(
-                "❌ Промокод не найден или уже использован!",
+                "❌ Вы уже использовали этот промокод!",
                 reply_markup=get_main_keyboard()
             )
+            await state.clear()
+            return
         
-        await state.clear()
+        amount = PROMOCODES[promokod]
+        db.use_promocode(message.from_user.id, promokod)
+        db.update_balance(message.from_user.id, amount)
+        user = db.get_user(message.from_user.id)
+        
+        await message.answer(
+            f"🎉 <b>ПРОМОКОД АКТИВИРОВАН!</b>\n\n"
+            f"➕ Начислено: {amount} $\n"
+            f"💰 Ваш баланс: {user.balance} $",
+            reply_markup=get_main_keyboard(),
+            parse_mode="HTML"
+        )
+    else:
+        await message.answer(
+            "❌ Промокод не найден!",
+            reply_markup=get_main_keyboard()
+        )
+    
+    await state.clear()

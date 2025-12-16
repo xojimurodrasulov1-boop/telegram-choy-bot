@@ -16,10 +16,22 @@ class User:
     balance: int = 0
     total_orders: int = 0
     registered_at: str = ""
+    used_promocodes: List[str] = None
+    referral_id: Optional[int] = None  # Kim tomonidan taklif qilingan
+    referrals_count: int = 0  # Nechta odam taklif qilingan
+    bonus_received: int = 0  # Jami qancha bonus olgan
     
     def __post_init__(self):
         if not self.registered_at:
             self.registered_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        if self.used_promocodes is None:
+            self.used_promocodes = []
+        if self.referral_id is None:
+            self.referral_id = None
+        if not hasattr(self, 'referrals_count'):
+            self.referrals_count = 0
+        if not hasattr(self, 'bonus_received'):
+            self.bonus_received = 0
 
 
 @dataclass
@@ -49,6 +61,14 @@ class UserDatabase:
                 with open(DATA_FILE, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     for user_id, user_data in data.items():
+                        if 'used_promocodes' not in user_data:
+                            user_data['used_promocodes'] = []
+                        if 'referral_id' not in user_data:
+                            user_data['referral_id'] = None
+                        if 'referrals_count' not in user_data:
+                            user_data['referrals_count'] = 0
+                        if 'bonus_received' not in user_data:
+                            user_data['bonus_received'] = 0
                         self.users[int(user_id)] = User(**user_data)
             except (json.JSONDecodeError, FileNotFoundError):
                 self.users = {}
@@ -76,11 +96,19 @@ class UserDatabase:
     def get_user(self, user_id: int) -> Optional[User]:
         return self.users.get(user_id)
     
-    def create_user(self, user_id: int, username: Optional[str], full_name: str) -> User:
+    def create_user(self, user_id: int, username: Optional[str], full_name: str, referral_id: Optional[int] = None) -> User:
         if user_id not in self.users:
-            user = User(user_id=user_id, username=username, full_name=full_name)
+            user = User(user_id=user_id, username=username, full_name=full_name, referral_id=referral_id)
             self.users[user_id] = user
             self._save_users()
+            
+            # Agar referral_id bo'lsa, referral yaratuvchiga 1$ qo'shish
+            if referral_id and referral_id in self.users:
+                referrer = self.users[referral_id]
+                referrer.balance += 1
+                referrer.referrals_count += 1
+                referrer.bonus_received += 1
+                self._save_users()
         return self.users[user_id]
     
     def update_balance(self, user_id: int, amount: int) -> bool:
@@ -93,6 +121,22 @@ class UserDatabase:
     def get_balance(self, user_id: int) -> int:
         user = self.get_user(user_id)
         return user.balance if user else 0
+    
+    def use_promocode(self, user_id: int, promocode: str) -> bool:
+        user = self.get_user(user_id)
+        if not user:
+            return False
+        if promocode in user.used_promocodes:
+            return False
+        user.used_promocodes.append(promocode)
+        self._save_users()
+        return True
+    
+    def has_used_promocode(self, user_id: int, promocode: str) -> bool:
+        user = self.get_user(user_id)
+        if not user:
+            return False
+        return promocode in user.used_promocodes
     
     def create_order(self, user_id: int, product_key: str, product_name: str, price: int) -> Optional[Order]:
         user = self.get_user(user_id)

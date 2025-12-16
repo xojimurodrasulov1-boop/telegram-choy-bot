@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "YOUR_BOT_TOKEN")
-ADMIN_BOT_TOKEN = "8249799462:AAGfwF7gdEFFz_aCfpbofb-O3MXhEW8wBEM"
+ADMIN_BOT_TOKEN = os.getenv("ADMIN_BOT_TOKEN", "8299312504:AAG13OG07n9Kz5f5y_BHyNZNgqGUvKitvvY")
 ADMIN_IDS = [7149917323]
 
 SHOP_NAME = "🍵 CHOY MAGAZINE"
@@ -18,3 +18,4 @@ PAYMENT_CARD_HOLDER = "CHOY MAGAZINE"
 
 SUPPORT_USERNAME = "@choy_support"
 CHANNEL_USERNAME = "@choy_magazine"
+BOT_USERNAME = "store_tashkentrobot"  # Bot username referral link uchun

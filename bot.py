@@ -1,43 +1,14 @@
 import asyncio
 import logging
 import sys
-import random
 
-from aiogram import Bot, Dispatcher, F
-from aiogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.client.default import DefaultBotProperties
-from aiogram.fsm.context import FSMContext
+from aiogram.types import BotCommand
 
-from config import BOT_TOKEN, ADMIN_IDS, LTC_ADDRESS, BTC_ADDRESS
-from data.models import db
-from handlers import (
-    main_router,
-    balance_router,
-    support_router
-)
-
-# MAHSULOTLAR
-PRODUCTS = {
-    "coco_120": {
-        "name": "🍫Euro Hash | 0.5g",
-        "price_usd": 19,
-        "old_price_usd": 21,
-        "description": "💯Лучший в своем деле💯\n\nEuro Hash сможет это сделать с одной плюшки😏"
-    },
-    "coco_200": {
-        "name": "🍫Euro Hash | 1g",
-        "price_usd": 42,
-        "old_price_usd": None,
-        "description": "💯Лучший в своем деле💯\n\nEuro Hash сможет это сделать с одной плюшки😏"
-    }
-}
-
-DISTRICTS = {
-    "chilonzor": "Чилонзор",
-    "sergeli": "Сергели",
-    "mirzoulugbek": "Мирзо Улугбек"
-}
+from config import BOT_TOKEN
+from handlers import main_router, balance_router, support_router, vitrina_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -51,12 +22,24 @@ logger = logging.getLogger(__name__)
 async def main():
     bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
     
+    # Bot buyruqlarini sozlash - "/" yozganda ko'rsatiladi
+    commands = [
+        BotCommand(command="start", description="Главное меню"),
+        BotCommand(command="list", description="Витрина товаров"),
+        BotCommand(command="support", description="Обратная связь"),
+        BotCommand(command="rules", description="Правила работы"),
+        BotCommand(command="info", description="Информация о магазине")
+    ]
+    await bot.set_my_commands(commands)
+    
     storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
     
-    dp.include_router(main_router)
+    # Router tartibini o'zgartirish - balance_router birinchi bo'lishi kerak
     dp.include_router(balance_router)
     dp.include_router(support_router)
+    dp.include_router(vitrina_router)
+    dp.include_router(main_router)  # main_router oxirida, chunki handle_any_text bor
     
     logger.info("Bot ishga tushdi!")
     

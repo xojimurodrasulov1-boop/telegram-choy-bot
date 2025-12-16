@@ -1,4 +1,6 @@
 import random
+import json
+import os
 from datetime import datetime, timedelta
 
 REVIEW_TEXTS = [
@@ -28,7 +30,6 @@ REVIEW_TEXTS = [
     "порадовали",
     "молодцы ребята",
     "все чики-пуки",
-    "заебись",
     "огонь!",
     "респект",
     "лучшие",
@@ -46,51 +47,40 @@ REVIEW_TEXTS = [
 
 TOTAL_REVIEWS = 15724
 REVIEWS_PER_PAGE = 1
-TOTAL_PAGES = 20
-
-_cached_reviews = None
-_cache_date = None
+TOTAL_PAGES = 15724
 
 
-def generate_reviews(count: int = 20) -> list:
-    global _cached_reviews, _cache_date
-    
-    today = datetime.now().date()
-    
-    if _cached_reviews is not None and _cache_date == today:
-        return _cached_reviews
-    
-    reviews = []
-    now = datetime.now()
-    
-    for i in range(count):
-        hours = random.randint(0, 23)
-        minutes = random.randint(0, 59)
-        
-        review_time = now.replace(hour=hours, minute=minutes)
-        
-        review = {
-            "text": random.choice(REVIEW_TEXTS),
-            "date": review_time.strftime("%d.%m.%Y"),
-            "time": review_time.strftime("%H:%M"),
-            "rating": "⭐⭐⭐⭐⭐"
-        }
-        reviews.append(review)
-    
-    reviews.sort(key=lambda x: x["time"], reverse=True)
-    
-    _cached_reviews = reviews
-    _cache_date = today
-    
-    return reviews
+def load_custom_reviews():
+    """Admin bot orqali qo'shilgan otzivlarni yuklash"""
+    reviews_file = "data/reviews.json"
+    if os.path.exists(reviews_file):
+        try:
+            with open(reviews_file, "r", encoding="utf-8") as f:
+                reviews = json.load(f)
+                # Teskari tartibda qaytarish (yangi otzivlar boshida)
+                return list(reversed(reviews))
+        except:
+            return []
+    return []
 
 
 def get_reviews_text(page: int = 1) -> str:
-    reviews = generate_reviews(20)
+    now = datetime.now()
+    today_str = now.strftime("%d.%m.%Y")
     
-    start_idx = (page - 1) * REVIEWS_PER_PAGE
-    end_idx = start_idx + REVIEWS_PER_PAGE
-    page_reviews = reviews[start_idx:end_idx]
+    # Admin bot orqali qo'shilgan otzivlarni yuklash (yangi otzivlar boshida)
+    custom_reviews = load_custom_reviews()
+    
+    fixed_reviews = [
+        {"text": "Качество на высшем уровне! Всё как описано, быстро нашёл. Буду брать ещё 🔥", "rating": 5, "date": today_str, "time": "13:42"},
+        {"text": "Отличный магазин, уже третий раз беру. Всё чётко и без проблем 👍", "rating": 5, "date": today_str, "time": "11:18"},
+        {"text": "Супер! Нашёл за 2 минуты, всё на месте. Рекомендую!", "rating": 5, "date": today_str, "time": "08:55"},
+        {"text": "Лучший магазин в Ташкенте! Качество топ, оператор вежливый", "rating": 5, "date": today_str, "time": "04:23"},
+        {"text": "Всё пришло как надо. Спасибо за быструю работу! 💯", "rating": 5, "date": today_str, "time": "01:07"},
+    ]
+    
+    # Custom reviews'ni boshida ko'rsatish (yangi otzivlar birinchi)
+    all_reviews = custom_reviews + fixed_reviews
     
     header = f"""<b>Рейтинг магазина:</b> ⭐ 4,6/5 ({TOTAL_REVIEWS} шт.)
 
@@ -98,9 +88,23 @@ def get_reviews_text(page: int = 1) -> str:
 
 """
     
-    reviews_text = ""
-    for review in page_reviews:
-        reviews_text += f"""{review['rating']}
+    # Agar page custom reviews ichida bo'lsa
+    if page <= len(all_reviews):
+        review = all_reviews[page - 1]
+    else:
+        random.seed(page)
+        review = {
+            "text": random.choice(REVIEW_TEXTS),
+            "rating": 5,  # Default rating
+            "date": (now - timedelta(days=random.randint(1, 30))).strftime("%d.%m.%Y"),
+            "time": f"{random.randint(0,23):02d}:{random.randint(0,59):02d}"
+        }
+    
+    # Rating'ni olish (agar bo'lmasa, 5 deb olish)
+    rating = review.get("rating", 5)
+    stars = "⭐" * rating
+    
+    reviews_text = f"""{stars}
 {review['text']}
 <i>от {review['date']} {review['time']}</i>
 

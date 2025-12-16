@@ -1,0 +1,18 @@
+[Unit]
+Description=Telegram Bot Service
+After=network.target
+
+[Service]
+Type=simple
+User=xoji
+WorkingDirectory=/Users/xoji/Documents/telegram_group_creator
+Environment="PATH=/Users/xoji/Documents/telegram_group_creator/venv/bin"
+ExecStart=/Users/xoji/Documents/telegram_group_creator/venv/bin/python /Users/xoji/Documents/telegram_group_creator/run_both.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+
