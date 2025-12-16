@@ -3,9 +3,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BOT_TOKEN = os.getenv("BOT_TOKEN", "YOUR_BOT_TOKEN")
-ADMIN_BOT_TOKEN = os.getenv("ADMIN_BOT_TOKEN", "8299312504:AAG13OG07n9Kz5f5y_BHyNZNgqGUvKitvvY")
+# Token'larni olish va bo'sh joylarni olib tashlash
+BOT_TOKEN = os.getenv("BOT_TOKEN", "YOUR_BOT_TOKEN").strip()
+ADMIN_BOT_TOKEN = os.getenv("ADMIN_BOT_TOKEN", "8299312504:AAG13OG07n9Kz5f5y_BHyNZNgqGUvKitvvY").strip()
 ADMIN_IDS = [7149917323]
+
+# Token'larni tekshirish
+if not BOT_TOKEN or BOT_TOKEN == "YOUR_BOT_TOKEN":
+    raise ValueError("BOT_TOKEN to'g'ri sozlash kerak!")
+if " " in BOT_TOKEN:
+    raise ValueError("BOT_TOKEN'da bo'sh joy bo'lmasligi kerak!")
 
 SHOP_NAME = "🍵 CHOY MAGAZINE"
 SHOP_DESCRIPTION = "Лучший магазин премиум чая в Ташкенте!"
