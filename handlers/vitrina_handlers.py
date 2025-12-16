@@ -421,7 +421,16 @@ async def select_district(callback: CallbackQuery, state: FSMContext):
             except Exception as e:
                 logger.error(f"Error sending Euro Hash image: {e}")
     
-    await callback.message.edit_text(text, reply_markup=buy_keyboard, parse_mode="HTML")
+    try:
+        await callback.message.edit_text(text, reply_markup=buy_keyboard, parse_mode="HTML")
+    except Exception:
+        # Agar edit_text ishlamasa (masalan, oldingi xabar photo bo'lsa)
+        try:
+            await callback.message.delete()
+        except Exception:
+            pass
+        await callback.message.answer(text, reply_markup=buy_keyboard, parse_mode="HTML")
+    await callback.answer()
 
 
 @router.callback_query(F.data.startswith("vbuy_balance:"))
@@ -579,7 +588,16 @@ stanislaw - Наш основной аккаунт оператора @BratskiyO
 
 <i>Администрация магазина за действия обменников ответственности не несет!</i>"""
     
-    await callback.message.edit_text(text, reply_markup=confirm_keyboard, parse_mode="HTML")
+    try:
+        await callback.message.edit_text(text, reply_markup=confirm_keyboard, parse_mode="HTML")
+    except Exception:
+        # Agar edit_text ishlamasa (masalan, oldingi xabar photo bo'lsa)
+        try:
+            await callback.message.delete()
+        except Exception:
+            pass
+        await callback.message.answer(text, reply_markup=confirm_keyboard, parse_mode="HTML")
+    await callback.answer()
 
 
 @router.callback_query(F.data.startswith("vcrypto_confirm:"))
@@ -632,7 +650,16 @@ stanislaw - Наш основной аккаунт оператора @BratskiyO
 
 <i>Администрация магазина за действия обменников ответственности не несет!</i>"""
     
-    await callback.message.edit_text(text, reply_markup=paid_keyboard, parse_mode="HTML")
+    try:
+        await callback.message.edit_text(text, reply_markup=paid_keyboard, parse_mode="HTML")
+    except Exception:
+        # Agar edit_text ishlamasa (masalan, oldingi xabar photo bo'lsa)
+        try:
+            await callback.message.delete()
+        except Exception:
+            pass
+        await callback.message.answer(text, reply_markup=paid_keyboard, parse_mode="HTML")
+    await callback.answer()
 
 
 @router.callback_query(F.data.startswith("vcrypto_paid:"))
@@ -672,7 +699,16 @@ async def crypto_paid(callback: CallbackQuery, state: FSMContext):
 
 2️⃣ В некоторых случаях необходимо видео-подтверждение вашей оплаты, как вы заходите в свое банковское приложение на телефоне и показать этот перевод. Видео необходимо оправить сюда в сообщения по заявке."""
     
-    await callback.message.edit_text(text, parse_mode="HTML")
+    try:
+        await callback.message.edit_text(text, parse_mode="HTML")
+    except Exception:
+        # Agar edit_text ishlamasa (masalan, oldingi xabar photo bo'lsa)
+        try:
+            await callback.message.delete()
+        except Exception:
+            pass
+        await callback.message.answer(text, parse_mode="HTML")
+    await callback.answer()
     
     # Admin bot'ga xabar yuborish
     admin_keyboard = {
@@ -758,15 +794,32 @@ async def deposit_crypto(callback: CallbackQuery, state: FSMContext):
         ]
     )
     
-    await callback.message.edit_text(
+    text_msg = (
         f"<b>Заявка #{application_id}</b>\n"
         f"Способ: {crypto_name}\n"
         f"Сумма: <b>{amount_usd} $</b>\n\n"
         f"<b>К оплате: {crypto_amount_str} {crypto_name}</b>\n\n"
-        f"⚠️ Переводите точную сумму!",
-        reply_markup=confirm_keyboard,
-        parse_mode="HTML"
+        f"⚠️ Переводите точную сумму!"
     )
+    
+    try:
+        await callback.message.edit_text(
+            text_msg,
+            reply_markup=confirm_keyboard,
+            parse_mode="HTML"
+        )
+    except Exception:
+        # Agar edit_text ishlamasa (masalan, oldingi xabar photo bo'lsa)
+        try:
+            await callback.message.delete()
+        except Exception:
+            pass
+        await callback.message.answer(
+            text_msg,
+            reply_markup=confirm_keyboard,
+            parse_mode="HTML"
+        )
+    await callback.answer()
 
 
 @router.callback_query(F.data.startswith("vconfirm:"))
@@ -796,14 +849,31 @@ async def confirm_crypto(callback: CallbackQuery, state: FSMContext):
     )
     
     await state.update_data(address=address)
-    await callback.message.edit_text(
+    text_msg = (
         f"<b>Заявка #{application_id}</b>\n\n"
         f"<b>К оплате: {crypto_amount_str} {crypto_name}</b>\n\n"
         f"<b>Адрес:</b>\n<code>{address}</code>\n\n"
-        f"⏳ Время: 30 минут",
-        reply_markup=paid_keyboard,
-        parse_mode="HTML"
+        f"⏳ Время: 30 минут"
     )
+    
+    try:
+        await callback.message.edit_text(
+            text_msg,
+            reply_markup=paid_keyboard,
+            parse_mode="HTML"
+        )
+    except Exception:
+        # Agar edit_text ishlamasa (masalan, oldingi xabar photo bo'lsa)
+        try:
+            await callback.message.delete()
+        except Exception:
+            pass
+        await callback.message.answer(
+            text_msg,
+            reply_markup=paid_keyboard,
+            parse_mode="HTML"
+        )
+    await callback.answer()
 
 
 @router.callback_query(F.data == "vpaid")
@@ -820,13 +890,30 @@ async def paid_confirm(callback: CallbackQuery, state: FSMContext):
         ]
     )
     
-    await callback.message.edit_text(
+    text_msg = (
         f"✅ <b>Заявка #{application_id} принята!</b>\n\n"
         f"💰 Сумма: {amount_usd} $\n\n"
-        f"⏳ Ожидайте подтверждения.",
-        reply_markup=back_keyboard,
-        parse_mode="HTML"
+        f"⏳ Ожидайте подтверждения."
     )
+    
+    try:
+        await callback.message.edit_text(
+            text_msg,
+            reply_markup=back_keyboard,
+            parse_mode="HTML"
+        )
+    except Exception:
+        # Agar edit_text ishlamasa (masalan, oldingi xabar photo bo'lsa)
+        try:
+            await callback.message.delete()
+        except Exception:
+            pass
+        await callback.message.answer(
+            text_msg,
+            reply_markup=back_keyboard,
+            parse_mode="HTML"
+        )
+    await callback.answer()
     
     # Admin bot'ga xabar yuborish
     crypto_amount_str = data.get("crypto_amount_str", str(crypto_amount))
