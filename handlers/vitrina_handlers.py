@@ -311,11 +311,24 @@ async def show_item(callback: CallbackQuery, state: FSMContext):
     
     await state.update_data(item_key=item_key)
     
-    await callback.message.edit_text(
-        f"<b>Отличный выбор!</b>\nА теперь выбери район:",
-        reply_markup=get_districts_keyboard(item_key),
-        parse_mode="HTML"
-    )
+    try:
+        await callback.message.edit_text(
+            f"<b>Отличный выбор!</b>\nА теперь выбери район:",
+            reply_markup=get_districts_keyboard(item_key),
+            parse_mode="HTML"
+        )
+    except Exception:
+        # Agar edit_text ishlamasa (masalan, oldingi xabar photo bo'lsa)
+        try:
+            await callback.message.delete()
+        except Exception:
+            pass
+        await callback.message.answer(
+            f"<b>Отличный выбор!</b>\nА теперь выбери район:",
+            reply_markup=get_districts_keyboard(item_key),
+            parse_mode="HTML"
+        )
+    await callback.answer()
 
 
 @router.callback_query(F.data.startswith("vdist:"))
