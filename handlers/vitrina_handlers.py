@@ -534,9 +534,12 @@ async def select_type(callback: CallbackQuery, state: FSMContext):
         # Barcha boshqa mahsulotlar uchun yangi tavarlar rasm
         image_file = "yangi tavarlar .jpg"
     
+    logger.info(f"Product: {product_name}, Image file: {image_file}, Exists: {os.path.exists(image_file) if image_file else False}")
+    
     if image_file and os.path.exists(image_file):
         try:
             photo = FSInputFile(image_file)
+            logger.info(f"Sending image: {image_file} for product: {product_name}")
             await callback.message.delete()
             await callback.message.answer_photo(
                 photo=photo,
@@ -544,9 +547,12 @@ async def select_type(callback: CallbackQuery, state: FSMContext):
                 reply_markup=buy_keyboard,
                 parse_mode="HTML"
             )
+            logger.info(f"Image sent successfully for product: {product_name}")
             return
         except Exception as e:
             logger.error(f"Error sending product image: {e}")
+    else:
+        logger.warning(f"Image file not found or not set: {image_file} for product: {product_name}")
     
     try:
         await callback.message.edit_text(text, reply_markup=buy_keyboard, parse_mode="HTML")
