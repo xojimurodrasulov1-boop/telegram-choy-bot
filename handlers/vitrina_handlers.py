@@ -682,14 +682,23 @@ async def process_buy_balance(callback: CallbackQuery, state: FSMContext):
     pickup_type_text = "Прикоп" if pickup_type == "prikop" else "Магнит"
     
     weight = product.get("weight", "0.5g")
+    logger.info(f"Looking for pickup data: district={district_key}, weight={weight}, pickup_type={pickup_type}")
+    
     pickup_data = PICKUP_INFO.get(district_key, {}).get(weight)
     
     if pickup_data:
+        # PICKUP_INFO dan olingan matnni pickup_type ga moslashtirish
         pickup_text = pickup_data["text"]
+        # Agar matnda "ТАЙНИК" yoki "ПРИКОП" bo'lsa, uni pickup_type ga moslashtirish
+        if "ТАЙНИК" in pickup_text or "ПРИКОП" in pickup_text:
+            pickup_text = pickup_text.replace("ТАЙНИК", pickup_type_text)
+            pickup_text = pickup_text.replace("ПРИКОП", pickup_type_text)
         images = pickup_data["images"]
+        logger.info(f"Found pickup data for weight={weight}")
     else:
         pickup_text = f"📦 ТОВАР: {product['name']}\n📍 РАЙОН: {district_name}\n🔎 ТИП КЛАДА: {pickup_type_text}"
         images = []
+        logger.warning(f"No pickup data found for district={district_key}, weight={weight}")
     
     back_keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
