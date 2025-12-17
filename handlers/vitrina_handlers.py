@@ -524,13 +524,14 @@ async def select_type(callback: CallbackQuery, state: FSMContext):
 💰 <b>Твой баланс:</b> {balance} $ ({balance_ltc} LTC)
 """
     
-    # Agar Euro Hash yoki Меф SNOW mahsuloti bo'lsa, rasm qo'shish
+    # Barcha mahsulotlar uchun rasm qo'shish
     product_name = product.get('name', '')
     image_file = None
     
     if 'Euro Hash' in product_name or 'euro' in product_name.lower():
         image_file = "eurohash.jpg"
-    elif 'Меф' in product_name or 'SNOW' in product_name or 'mef' in product_name.lower():
+    else:
+        # Barcha boshqa mahsulotlar uchun yangi tavarlar rasm
         image_file = "yangi tavarlar .jpg"
     
     if image_file and os.path.exists(image_file):
