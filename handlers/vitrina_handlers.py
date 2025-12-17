@@ -25,8 +25,8 @@ def format_crypto_amount(amount: float, crypto_type: str) -> str:
 PRODUCTS = {
     "euro_hash_05": {
         "name": "🍫 Euro Hash 0.5",
-        "price_usd": 19,
-        "price_rub": 7220,
+        "price_usd": round(1530 / 382.6, 2),  # 1530 руб / 382.6 = ~4.00 USD
+        "price_rub": 1530,
         "old_price_usd": 21,
         "weight": "0.5g",
         "description": """💯Лучший в своем деле💯
@@ -47,8 +47,8 @@ PRODUCTS = {
     },
     "euro_hash_1": {
         "name": "🍫 Euro Hash 1",
-        "price_usd": 42,
-        "price_rub": 15960,
+        "price_usd": round(3380 / 382.6, 2),  # 3380 руб / 382.6 = ~8.84 USD
+        "price_rub": 3380,
         "old_price_usd": 48,
         "weight": "1g",
         "description": """💯Лучший в своем деле💯
@@ -69,8 +69,8 @@ PRODUCTS = {
     },
     "euro_hash_3": {
         "name": "🍫 Euro Hash 3",
-        "price_usd": 90,
-        "price_rub": 34200,
+        "price_usd": round(7250 / 382.6, 2),  # 7250 руб / 382.6 = ~18.95 USD
+        "price_rub": 7250,
         "old_price_usd": 102,
         "weight": "3g",
         "description": """💯Лучший в своем деле💯
