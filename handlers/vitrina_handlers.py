@@ -127,8 +127,8 @@ PRODUCTS = {
     },
     "lsd_1": {
         "name": "😈 LSD 😈 - 1шт",
-        "price_usd": 10,
-        "price_rub": 3790,
+        "price_usd": 35,
+        "price_rub": 2820,
         "weight": "1шт",
         "description": """😈 LSD 😈
 
