@@ -578,6 +578,9 @@ async def process_buy_balance(callback: CallbackQuery, state: FSMContext):
     # Pickup type'ni ko'rsatish
     pickup_type_text = "Прикоп" if pickup_type == "prikop" else "Магнит"
     
+    # Pickup type'ni ko'rsatish
+    pickup_type_text = "Прикоп" if pickup_type == "prikop" else "Магнит"
+    
     weight = product.get("weight", "0.5g")
     pickup_data = PICKUP_INFO.get(district_key, {}).get(weight)
     
@@ -585,7 +588,7 @@ async def process_buy_balance(callback: CallbackQuery, state: FSMContext):
         pickup_text = pickup_data["text"]
         images = pickup_data["images"]
     else:
-        pickup_text = f"📦 ТОВАР: {product['name']}\n📍 РАЙОН: {district_name}"
+        pickup_text = f"📦 ТОВАР: {product['name']}\n📍 РАЙОН: {district_name}\n🔎 ТИП КЛАДА: {pickup_type_text}"
         images = []
     
     back_keyboard = InlineKeyboardMarkup(
@@ -599,7 +602,7 @@ async def process_buy_balance(callback: CallbackQuery, state: FSMContext):
     except:
         pass
     
-    order_header = f"<b>#{order_id}</b>\n<b>{product['name']} (Ташкент, {district_name})</b>\n\n"
+    order_header = f"<b>#{order_id}</b>\n<b>{product['name']} (Ташкент, {district_name})</b>\n<b>Тип: {pickup_type_text}</b>\n\n"
     full_text = order_header + pickup_text + f"\n\n💰 <b>Новый баланс:</b> {user.balance} $"
     
     if images:
