@@ -531,7 +531,7 @@ async def select_type(callback: CallbackQuery, state: FSMContext):
     if 'Euro Hash' in product_name or 'euro' in product_name.lower():
         image_file = "eurohash.jpg"
     elif 'Меф' in product_name or 'SNOW' in product_name or 'mef' in product_name.lower():
-        image_file = "tavar.jpg"
+        image_file = "yangi tavarlar .jpg"
     
     if image_file and os.path.exists(image_file):
         try:
