@@ -91,7 +91,7 @@ PRODUCTS = {
     },
     "mef_snow_1": {
         "name": "Меф - ❄️SNOW❄️ - 1г",
-        "price_usd": round(7270 / 382.6, 2),  # 7270 руб / 382.6 = ~19.01 USD
+        "price_usd": 88,
         "price_rub": 7270,
         "weight": "1г",
         "description": """Меф - ❄️SNOW❄️
@@ -100,7 +100,7 @@ PRODUCTS = {
     },
     "mef_snow_15": {
         "name": "Меф - ❄️SNOW❄️ - 1.5г",
-        "price_usd": round(9560 / 382.6, 2),  # 9560 руб / 382.6 = ~25.00 USD
+        "price_usd": 115,
         "price_rub": 9560,
         "weight": "1.5г",
         "description": """Меф - ❄️SNOW❄️
@@ -109,7 +109,7 @@ PRODUCTS = {
     },
     "mef_snow_2": {
         "name": "Меф - ❄️SNOW❄️ - 2г",
-        "price_usd": round(12230 / 382.6, 2),  # 12230 руб / 382.6 = ~31.98 USD
+        "price_usd": 150,
         "price_rub": 12230,
         "weight": "2г",
         "description": """Меф - ❄️SNOW❄️
@@ -118,7 +118,7 @@ PRODUCTS = {
     },
     "mef_snow_3": {
         "name": "Меф - ❄️SNOW❄️ - 3г",
-        "price_usd": round(19190 / 382.6, 2),  # 19190 руб / 382.6 = ~50.16 USD
+        "price_usd": 235,
         "price_rub": 19190,
         "weight": "3г",
         "description": """Меф - ❄️SNOW❄️
