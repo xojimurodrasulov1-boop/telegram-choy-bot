@@ -681,9 +681,6 @@ async def process_buy_balance(callback: CallbackQuery, state: FSMContext):
     # Pickup type'ni ko'rsatish
     pickup_type_text = "Прикоп" if pickup_type == "prikop" else "Магнит"
     
-    # Pickup type'ni ko'rsatish
-    pickup_type_text = "Прикоп" if pickup_type == "prikop" else "Магнит"
-    
     weight = product.get("weight", "0.5g")
     pickup_data = PICKUP_INFO.get(district_key, {}).get(weight)
     
