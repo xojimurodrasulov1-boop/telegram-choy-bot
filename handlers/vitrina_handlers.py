@@ -381,8 +381,10 @@ async def show_item(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data.startswith("vdist:"))
 async def select_district(callback: CallbackQuery, state: FSMContext):
+    logger.info(f"=== SELECT_DISTRICT BOSILDI! Data: {callback.data} ===")
     parts = callback.data.split(":")
     if len(parts) < 3:
+        logger.error(f"vdist: Not enough parts: {parts}")
         return
     
     item_key = parts[1]
@@ -391,7 +393,10 @@ async def select_district(callback: CallbackQuery, state: FSMContext):
     product = PRODUCTS.get(item_key)
     district_name = DISTRICTS.get(district_key, "")
     
+    logger.info(f"Item key: {item_key}, District key: {district_key}, Product: {product}, District name: {district_name}")
+    
     if not product or not district_name:
+        logger.error(f"Product or district not found: product={product}, district={district_name}")
         await callback.answer("❌ Ошибка!", show_alert=True)
         return
     
@@ -412,13 +417,17 @@ async def select_district(callback: CallbackQuery, state: FSMContext):
         ]
     )
     
+    logger.info(f"Type keyboard created: {type_keyboard}")
+    
     try:
         await callback.message.edit_text(
             "<b>Выберите тип:</b>",
             reply_markup=type_keyboard,
             parse_mode="HTML"
         )
-    except Exception:
+        logger.info("Message edited successfully")
+    except Exception as e:
+        logger.error(f"Error editing message: {e}")
         try:
             await callback.message.delete()
         except Exception:
@@ -428,6 +437,7 @@ async def select_district(callback: CallbackQuery, state: FSMContext):
             reply_markup=type_keyboard,
             parse_mode="HTML"
         )
+        logger.info("New message sent")
     await callback.answer()
 
 
