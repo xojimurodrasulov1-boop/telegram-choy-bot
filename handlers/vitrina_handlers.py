@@ -687,14 +687,29 @@ async def process_buy_balance(callback: CallbackQuery, state: FSMContext):
     pickup_data = PICKUP_INFO.get(district_key, {}).get(weight)
     
     if pickup_data:
-        # PICKUP_INFO dan olingan matnni pickup_type ga moslashtirish
+        # PICKUP_INFO dan olingan matnni pickup_type va weight ga moslashtirish
         pickup_text = pickup_data["text"]
+        
+        # Weight ni to'g'ri ko'rsatish (product weight bilan almashtirish)
+        actual_weight = product.get("weight", weight)
+        if actual_weight != weight:
+            # Matndagi weight ni to'g'ri weight bilan almashtirish
+            pickup_text = pickup_text.replace(f"⚖️ ФАСОВКА: {weight}", f"⚖️ ФАСОВКА: {actual_weight}")
+            # Agar "g" va "г" farqi bo'lsa
+            pickup_text = pickup_text.replace(f"⚖️ ФАСОВКА: {weight.replace('г', 'g')}", f"⚖️ ФАСОВКА: {actual_weight}")
+            pickup_text = pickup_text.replace(f"⚖️ ФАСОВКА: {weight.replace('g', 'г')}", f"⚖️ ФАСОВКА: {actual_weight}")
+        
         # Agar matnda "ТАЙНИК" yoki "ПРИКОП" bo'lsa, uni pickup_type ga moslashtirish
-        if "ТАЙНИК" in pickup_text or "ПРИКОП" in pickup_text:
+        if "ТАЙНИК" in pickup_text:
             pickup_text = pickup_text.replace("ТАЙНИК", pickup_type_text)
+            pickup_text = pickup_text.replace("ТАЙНИК ровно", f"{pickup_type_text} ровно")
+        elif "ПРИКОП" in pickup_text:
             pickup_text = pickup_text.replace("ПРИКОП", pickup_type_text)
+            pickup_text = pickup_text.replace("ПРИКОП ровно", f"{pickup_type_text} ровно")
+            pickup_text = pickup_text.replace("ПРИКОП 2-3см", f"{pickup_type_text} 2-3см")
+        
         images = pickup_data["images"]
-        logger.info(f"Found pickup data for weight={weight}")
+        logger.info(f"Found pickup data for weight={weight}, actual_weight={actual_weight}, pickup_type={pickup_type_text}")
     else:
         pickup_text = f"📦 ТОВАР: {product['name']}\n📍 РАЙОН: {district_name}\n🔎 ТИП КЛАДА: {pickup_type_text}"
         images = []
