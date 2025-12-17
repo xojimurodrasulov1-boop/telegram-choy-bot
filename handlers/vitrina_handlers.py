@@ -403,6 +403,60 @@ async def select_district(callback: CallbackQuery, state: FSMContext):
         price=product['price_usd']
     )
     
+    # Тип tanlash uchun keyboard
+    type_keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="Прикоп", callback_data=f"vtype:{item_key}:{district_key}:prikop")],
+            [InlineKeyboardButton(text="Магнит", callback_data=f"vtype:{item_key}:{district_key}:magnet")],
+            [InlineKeyboardButton(text="🔙 Назад", callback_data=f"vitem:{item_key}")]
+        ]
+    )
+    
+    try:
+        await callback.message.edit_text(
+            "<b>Выберите тип:</b>",
+            reply_markup=type_keyboard,
+            parse_mode="HTML"
+        )
+    except Exception:
+        try:
+            await callback.message.delete()
+        except Exception:
+            pass
+        await callback.message.answer(
+            "<b>Выберите тип:</b>",
+            reply_markup=type_keyboard,
+            parse_mode="HTML"
+        )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("vtype:"))
+async def select_type(callback: CallbackQuery, state: FSMContext):
+    parts = callback.data.split(":")
+    if len(parts) < 4:
+        return
+    
+    item_key = parts[1]
+    district_key = parts[2]
+    pickup_type = parts[3]  # prikop yoki magnet
+    
+    product = PRODUCTS.get(item_key)
+    district_name = DISTRICTS.get(district_key, "")
+    
+    if not product or not district_name:
+        await callback.answer("❌ Ошибка!", show_alert=True)
+        return
+    
+    await state.update_data(
+        item_key=item_key,
+        district_key=district_key,
+        district_name=district_name,
+        pickup_type=pickup_type,
+        item_name=product['name'],
+        price=product['price_usd']
+    )
+    
     user = db.get_user(callback.from_user.id)
     balance = user.balance if user else 0
     balance_ltc = round(balance * LTC_RATE, 2)
@@ -429,21 +483,21 @@ async def select_district(callback: CallbackQuery, state: FSMContext):
     
     buttons = []
     if can_buy_with_balance:
-        buttons.append([InlineKeyboardButton(text="Оплатить с баланса", callback_data=f"vbuy_balance:{item_key}:{district_key}")])
+        buttons.append([InlineKeyboardButton(text="Оплатить с баланса", callback_data=f"vbuy_balance:{item_key}:{district_key}:{pickup_type}")])
         buttons.append([
-            InlineKeyboardButton(text="LTC", callback_data=f"vbuy_crypto:ltc:{item_key}:{district_key}"),
-            InlineKeyboardButton(text="BTC", callback_data=f"vbuy_crypto:btc:{item_key}:{district_key}")
+            InlineKeyboardButton(text="LTC", callback_data=f"vbuy_crypto:ltc:{item_key}:{district_key}:{pickup_type}"),
+            InlineKeyboardButton(text="BTC", callback_data=f"vbuy_crypto:btc:{item_key}:{district_key}:{pickup_type}")
         ])
     else:
         buttons.append([
-            InlineKeyboardButton(text="LTC", callback_data=f"vbuy_crypto:ltc:{item_key}:{district_key}"),
-            InlineKeyboardButton(text="BTC", callback_data=f"vbuy_crypto:btc:{item_key}:{district_key}")
+            InlineKeyboardButton(text="LTC", callback_data=f"vbuy_crypto:ltc:{item_key}:{district_key}:{pickup_type}"),
+            InlineKeyboardButton(text="BTC", callback_data=f"vbuy_crypto:btc:{item_key}:{district_key}:{pickup_type}")
         ])
         buttons.append([
             InlineKeyboardButton(text="🎁 Промокод", callback_data="promokod"),
             InlineKeyboardButton(text="💳 UzCard/Humo", callback_data="uzcard_humo")
         ])
-    buttons.append([InlineKeyboardButton(text="🔙 Назад", callback_data=f"vitem:{item_key}")])
+    buttons.append([InlineKeyboardButton(text="🔙 Назад", callback_data=f"vdist:{item_key}:{district_key}")])
     
     buy_keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     
@@ -498,6 +552,7 @@ async def process_buy_balance(callback: CallbackQuery, state: FSMContext):
     
     item_key = parts[1]
     district_key = parts[2]
+    pickup_type = parts[3] if len(parts) > 3 else "prikop"  # prikop yoki magnet
     
     product = PRODUCTS.get(item_key)
     district_name = DISTRICTS.get(district_key, "")
@@ -505,6 +560,8 @@ async def process_buy_balance(callback: CallbackQuery, state: FSMContext):
     if not product:
         await callback.answer("❌ Ошибка!", show_alert=True)
         return
+    
+    await state.update_data(pickup_type=pickup_type)
     
     user = db.get_user(callback.from_user.id)
     price = product['price_usd']
@@ -517,6 +574,9 @@ async def process_buy_balance(callback: CallbackQuery, state: FSMContext):
     
     db.update_balance(callback.from_user.id, -price)
     user = db.get_user(callback.from_user.id)
+    
+    # Pickup type'ni ko'rsatish
+    pickup_type_text = "Прикоп" if pickup_type == "prikop" else "Магнит"
     
     weight = product.get("weight", "0.5g")
     pickup_data = PICKUP_INFO.get(district_key, {}).get(weight)
@@ -584,6 +644,7 @@ async def process_buy_crypto(callback: CallbackQuery, state: FSMContext):
     crypto_type = parts[1]
     item_key = parts[2]
     district_key = parts[3]
+    pickup_type = parts[4] if len(parts) > 4 else "prikop"  # prikop yoki magnet
     
     product = PRODUCTS.get(item_key)
     district_name = DISTRICTS.get(district_key, "")
@@ -591,6 +652,8 @@ async def process_buy_crypto(callback: CallbackQuery, state: FSMContext):
     if not product:
         await callback.answer("❌ Ошибка!", show_alert=True)
         return
+    
+    await state.update_data(pickup_type=pickup_type)
     
     price = product['price_usd']
     
@@ -618,13 +681,14 @@ async def process_buy_crypto(callback: CallbackQuery, state: FSMContext):
         crypto_amount=crypto_amount,
         crypto_amount_str=crypto_amount_str,
         application_id=application_id,
-        address=address
+        address=address,
+        pickup_type=pickup_type
     )
     
     confirm_keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="✅ Подтвердить", callback_data=f"vcrypto_confirm:{application_id}")],
-            [InlineKeyboardButton(text="❌ Отменить", callback_data=f"vdist:{item_key}:{district_key}")]
+            [InlineKeyboardButton(text="❌ Отменить", callback_data=f"vtype:{item_key}:{district_key}:{pickup_type}")]
         ]
     )
     
@@ -674,6 +738,8 @@ async def crypto_confirm_show_address(callback: CallbackQuery, state: FSMContext
     if not crypto_amount_str or crypto_amount_str == str(crypto_amount):
         crypto_amount_str = format_crypto_amount(crypto_amount, crypto_type)
     
+    pickup_type = data.get("pickup_type", "prikop")
+    
     paid_keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -681,7 +747,7 @@ async def crypto_confirm_show_address(callback: CallbackQuery, state: FSMContext
                 InlineKeyboardButton(text="📱 LTC QR 2", url="https://t.me/BratskiyObmen")
             ],
             [InlineKeyboardButton(text="✅ Оплачен", callback_data=f"vcrypto_paid:{application_id}")],
-            [InlineKeyboardButton(text="❌ Отменить", callback_data=f"vdist:{item_key}:{district_key}")]
+            [InlineKeyboardButton(text="❌ Отменить", callback_data=f"vtype:{item_key}:{district_key}:{pickup_type}")]
         ]
     )
     
