@@ -524,23 +524,28 @@ async def select_type(callback: CallbackQuery, state: FSMContext):
 💰 <b>Твой баланс:</b> {balance} $ ({balance_ltc} LTC)
 """
     
-    # Agar Euro Hash mahsuloti bo'lsa, rasm qo'shish
+    # Agar Euro Hash yoki Меф SNOW mahsuloti bo'lsa, rasm qo'shish
     product_name = product.get('name', '')
+    image_file = None
+    
     if 'Euro Hash' in product_name or 'euro' in product_name.lower():
-        eurohash_image = "eurohash.jpg"
-        if os.path.exists(eurohash_image):
-            try:
-                photo = FSInputFile(eurohash_image)
-                await callback.message.delete()
-                await callback.message.answer_photo(
-                    photo=photo,
-                    caption=text,
-                    reply_markup=buy_keyboard,
-                    parse_mode="HTML"
-                )
-                return
-            except Exception as e:
-                logger.error(f"Error sending Euro Hash image: {e}")
+        image_file = "eurohash.jpg"
+    elif 'Меф' in product_name or 'SNOW' in product_name or 'mef' in product_name.lower():
+        image_file = "tavar.jpg"
+    
+    if image_file and os.path.exists(image_file):
+        try:
+            photo = FSInputFile(image_file)
+            await callback.message.delete()
+            await callback.message.answer_photo(
+                photo=photo,
+                caption=text,
+                reply_markup=buy_keyboard,
+                parse_mode="HTML"
+            )
+            return
+        except Exception as e:
+            logger.error(f"Error sending product image: {e}")
     
     try:
         await callback.message.edit_text(text, reply_markup=buy_keyboard, parse_mode="HTML")
