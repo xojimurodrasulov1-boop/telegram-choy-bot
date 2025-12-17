@@ -26,6 +26,7 @@ PRODUCTS = {
     "euro_hash_05": {
         "name": "🍫 Euro Hash 0.5",
         "price_usd": 19,
+        "price_rub": 7220,
         "old_price_usd": 21,
         "weight": "0.5g",
         "description": """💯Лучший в своем деле💯
@@ -47,6 +48,7 @@ PRODUCTS = {
     "euro_hash_1": {
         "name": "🍫 Euro Hash 1",
         "price_usd": 42,
+        "price_rub": 15960,
         "old_price_usd": 48,
         "weight": "1g",
         "description": """💯Лучший в своем деле💯
@@ -68,6 +70,7 @@ PRODUCTS = {
     "euro_hash_3": {
         "name": "🍫 Euro Hash 3",
         "price_usd": 90,
+        "price_rub": 34200,
         "old_price_usd": 102,
         "weight": "3g",
         "description": """💯Лучший в своем деле💯
@@ -85,6 +88,51 @@ PRODUCTS = {
 Хочешь проверить себя на стойкость? Тогда 
 тебе точно стоит ощутить на себе 
 🍫 Euro Hash"""
+    },
+    "mef_snow_1": {
+        "name": "Меф - ❄️SNOW❄️ - 1г",
+        "price_usd": 19,
+        "price_rub": 7270,
+        "weight": "1г",
+        "description": """Меф - ❄️SNOW❄️
+
+Высокое качество, проверенное временем."""
+    },
+    "mef_snow_15": {
+        "name": "Меф - ❄️SNOW❄️ - 1.5г",
+        "price_usd": 25,
+        "price_rub": 9560,
+        "weight": "1.5г",
+        "description": """Меф - ❄️SNOW❄️
+
+Высокое качество, проверенное временем."""
+    },
+    "mef_snow_2": {
+        "name": "Меф - ❄️SNOW❄️ - 2г",
+        "price_usd": 32,
+        "price_rub": 12230,
+        "weight": "2г",
+        "description": """Меф - ❄️SNOW❄️
+
+Высокое качество, проверенное временем."""
+    },
+    "mef_snow_3": {
+        "name": "Меф - ❄️SNOW❄️ - 3г",
+        "price_usd": 50,
+        "price_rub": 19190,
+        "weight": "3г",
+        "description": """Меф - ❄️SNOW❄️
+
+Высокое качество, проверенное временем."""
+    },
+    "lsd_1": {
+        "name": "😈 LSD 😈 - 1шт",
+        "price_usd": 10,
+        "price_rub": 3790,
+        "weight": "1шт",
+        "description": """😈 LSD 😈
+
+Качественный продукт."""
     }
 }
 
@@ -360,10 +408,19 @@ async def select_district(callback: CallbackQuery, state: FSMContext):
     balance_ltc = round(balance * LTC_RATE, 2)
     
     old_price = product.get("old_price_usd")
-    if old_price:
-        price_text = f"<s>{old_price}$</s> {product['price_usd']}$"
+    price_rub = product.get("price_rub")
+    
+    # Agar Euro Hash bo'lsa, rubl narxini ham ko'rsatish
+    if price_rub and ('Euro Hash' in product.get('name', '') or 'euro' in product.get('name', '').lower()):
+        if old_price:
+            price_text = f"<s>{old_price}$</s> {product['price_usd']}$ ({price_rub} руб.)"
+        else:
+            price_text = f"{product['price_usd']}$ ({price_rub} руб.)"
     else:
-        price_text = f"{product['price_usd']}$"
+        if old_price:
+            price_text = f"<s>{old_price}$</s> {product['price_usd']}$"
+        else:
+            price_text = f"{product['price_usd']}$"
     
     product_name_with_location = f"{product['name']} (Ташкент, {district_name})"
     
