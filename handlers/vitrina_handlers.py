@@ -410,8 +410,8 @@ async def select_district(callback: CallbackQuery, state: FSMContext):
     old_price = product.get("old_price_usd")
     price_rub = product.get("price_rub")
     
-    # Agar Euro Hash bo'lsa, rubl narxini ham ko'rsatish
-    if price_rub and ('Euro Hash' in product.get('name', '') or 'euro' in product.get('name', '').lower()):
+    # Agar rubl narxi bo'lsa, uni ham ko'rsatish
+    if price_rub:
         if old_price:
             price_text = f"<s>{old_price}$</s> {product['price_usd']}$ ({price_rub} руб.)"
         else:
