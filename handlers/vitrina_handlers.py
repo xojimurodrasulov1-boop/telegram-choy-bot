@@ -528,31 +528,40 @@ async def select_type(callback: CallbackQuery, state: FSMContext):
     product_name = product.get('name', '')
     image_file = None
     
+    # Euro Hash mahsulotlari uchun
     if 'Euro Hash' in product_name or 'euro' in product_name.lower():
         image_file = "eurohash.jpg"
+    # Меф SNOW, LSD va boshqa barcha mahsulotlar uchun
     else:
-        # Barcha boshqa mahsulotlar uchun yangi tavarlar rasm
         image_file = "yangi tavarlar .jpg"
     
-    logger.info(f"Product: {product_name}, Image file: {image_file}, Exists: {os.path.exists(image_file) if image_file else False}")
+    logger.info(f"=== RASM QO'SHISH === Product: {product_name}, Image file: {image_file}")
     
-    if image_file and os.path.exists(image_file):
-        try:
-            photo = FSInputFile(image_file)
-            logger.info(f"Sending image: {image_file} for product: {product_name}")
-            await callback.message.delete()
-            await callback.message.answer_photo(
-                photo=photo,
-                caption=text,
-                reply_markup=buy_keyboard,
-                parse_mode="HTML"
-            )
-            logger.info(f"Image sent successfully for product: {product_name}")
-            return
-        except Exception as e:
-            logger.error(f"Error sending product image: {e}")
+    # Rasm faylini tekshirish
+    if image_file:
+        file_exists = os.path.exists(image_file)
+        logger.info(f"File exists: {file_exists}, Path: {os.path.abspath(image_file) if image_file else 'None'}")
+        
+        if file_exists:
+            try:
+                photo = FSInputFile(image_file)
+                logger.info(f"Sending image: {image_file} for product: {product_name}")
+                await callback.message.delete()
+                await callback.message.answer_photo(
+                    photo=photo,
+                    caption=text,
+                    reply_markup=buy_keyboard,
+                    parse_mode="HTML"
+                )
+                logger.info(f"✅ Image sent successfully for product: {product_name}")
+                await callback.answer()
+                return
+            except Exception as e:
+                logger.error(f"❌ Error sending product image: {e}", exc_info=True)
+        else:
+            logger.warning(f"⚠️ Image file not found: {image_file} for product: {product_name}")
     else:
-        logger.warning(f"Image file not found or not set: {image_file} for product: {product_name}")
+        logger.warning(f"⚠️ Image file not set for product: {product_name}")
     
     try:
         await callback.message.edit_text(text, reply_markup=buy_keyboard, parse_mode="HTML")
