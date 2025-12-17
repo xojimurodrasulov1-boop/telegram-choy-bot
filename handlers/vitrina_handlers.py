@@ -371,9 +371,18 @@ BTC_RATE = 0.0000098
 def get_vitrina_keyboard() -> InlineKeyboardMarkup:
     buttons = []
     for key, product in PRODUCTS.items():
+        product_name = product["name"]
+        price_rub = product.get("price_rub")
+        
+        # Agar rubl narxi bo'lsa, uni ham ko'rsatish
+        if price_rub:
+            button_text = f"{product_name} ({price_rub} руб.)"
+        else:
+            button_text = product_name
+        
         buttons.append([
             InlineKeyboardButton(
-                text=product["name"],
+                text=button_text,
                 callback_data=f"vitem:{key}"
             )
         ])
